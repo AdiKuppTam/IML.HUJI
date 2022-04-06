@@ -23,7 +23,13 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    raise NotImplementedError()
+    df = pd.read_csv(filename)
+    df = df.drop(columns=["Id"])
+    df = df.dropna()
+
+    # here we are using the median value of the column as the value for the missing value
+    df = pd.get_dummies(df,columns=["zipcode", ],drop_first=True)
+    return df, df.SalePrice
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -43,18 +49,29 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     output_path: str (default ".")
         Path to folder in which plots are saved
     """
-    raise NotImplementedError()
+       
+    ln = LinearRegression(include_intercept=False)
+    ln.fit(pd.DataFrame.to_numpy(X), y)
+    y_pred = ln.predict(X)
+    
+    fig = go.Figure()
+    for i in range(X.shape[1]):
+        fig.add_trace(go.Scatter(x=X.iloc[:, i], y=y_pred, mode='markers', name=f"{X.columns[i]}", marker_color=i))
+    fig.update_layout(title_text="Feature vs. Response", xaxis_title="Feature", yaxis_title="Response")
+    fig.show()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    raise NotImplementedError()
-
+    df = load_data("C:\\Users\\Adi\\OneDrive\\Documents\\Year4\\Sem2\\IML\\IML.HUJI\\datasets\\house_train.csv")
+    print(df.head())
+    
     # Question 2 - Feature evaluation with respect to response
-    raise NotImplementedError()
+    feature_evaluation(df.iloc[:, :-1], df.iloc[:, -1]) 
 
     # Question 3 - Split samples into training- and testing sets.
+    X_train, X_test, y_train, y_test = split_train_test(df.iloc[:, :-1], df.iloc[:, -1])
     raise NotImplementedError()
 
     # Question 4 - Fit model over increasing percentages of the overall training data
